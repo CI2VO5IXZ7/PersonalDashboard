@@ -188,7 +188,7 @@ export default function SettingsPage() {
                   <Upload size={14} />
                   {uploading ? "上传中..." : "上传背景图片"}
                 </button>
-                <p className="text-xs text-muted mt-2">支持 JPG/PNG/WebP/GIF，最大 10MB，图片会自适应浏览器窗口大小</p>
+                <p className="text-xs text-muted mt-2">支持 JPG/PNG/WebP/GIF，最大 5MB，图片会自适应浏览器窗口大小</p>
               </div>
             )}
 
