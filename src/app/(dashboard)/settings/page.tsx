@@ -87,13 +87,13 @@ export default function SettingsPage() {
                         <p className="text-xs text-muted mt-0.5">{item.desc}</p>
                       </div>
                       <button
-                        onClick={() => updateSetting(item.key, !(settings as Record<string, unknown>)[item.key])}
+                        onClick={() => updateSetting(item.key, !(settings as unknown as Record<string, unknown>)[item.key])}
                         className={`w-10 h-6 rounded-full transition-colors relative ${
-                          (settings as Record<string, unknown>)[item.key] ? "bg-accent" : "bg-border"
+                          (settings as unknown as Record<string, unknown>)[item.key] ? "bg-accent" : "bg-border"
                         }`}
                       >
                         <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                          (settings as Record<string, unknown>)[item.key] ? "translate-x-5" : "translate-x-1"
+                          (settings as unknown as Record<string, unknown>)[item.key] ? "translate-x-5" : "translate-x-1"
                         }`} />
                       </button>
                     </div>
