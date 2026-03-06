@@ -36,6 +36,7 @@ export const settingsUpdateSchema = z.object({
   pushNotifications: z.boolean().optional(),
   weeklySummary: z.boolean().optional(),
   securityMode: z.string().optional(),
+  backgroundImage: z.string().nullable().optional(),
 });
 
 export const bookmarkCreateSchema = z.object({

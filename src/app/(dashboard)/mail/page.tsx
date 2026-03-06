@@ -22,6 +22,9 @@ interface Subscription {
   sourceName: string;
   category: string;
   title: string;
+  summary?: string;
+  content?: string;
+  sourceUrl?: string;
   publishedAt: string;
 }
 
@@ -66,6 +69,9 @@ export default function MailPage() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [activeCat, setActiveCat] = useState("全部");
+  const [selectedSub, setSelectedSub] = useState<Subscription | null>(null);
+  type ContentMode = "mail" | "rss";
+  const [contentMode, setContentMode] = useState<ContentMode>("mail");
 
   const fetchMails = useCallback(async () => {
     const params = new URLSearchParams({ folder: activeFolder, search });
@@ -175,7 +181,7 @@ export default function MailPage() {
           {mails.map((mail) => (
             <div
               key={mail.id}
-              onClick={() => { setSelectedMail(mail); if (!mail.isRead) handleMarkRead(mail); }}
+              onClick={() => { setSelectedMail(mail); setContentMode("mail"); setSelectedSub(null); if (!mail.isRead) handleMarkRead(mail); }}
               className={`relative flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors ${
                 selectedMail?.id === mail.id ? "bg-card" : "hover:bg-card-hover"
               }`}
@@ -206,12 +212,12 @@ export default function MailPage() {
         </div>
       </div>
 
-      {/* Center - Mail detail */}
+      {/* Center - Content detail (Mail or RSS) */}
       <div className="flex-1 flex flex-col min-w-0">
-        {selectedMail ? (
+        {contentMode === "mail" && selectedMail ? (
           <>
             <div className="flex items-center gap-1 px-6 py-3 border-b border-border">
-              <button onClick={() => setSelectedMail(null)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted hover:text-foreground hover:bg-card transition-colors">
+              <button onClick={() => { setSelectedMail(null); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted hover:text-foreground hover:bg-card transition-colors">
                 <ArrowLeft size={15} /><span>返回</span>
               </button>
               <button onClick={() => handleArchive(selectedMail.id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted hover:text-foreground hover:bg-card transition-colors">
@@ -233,10 +239,7 @@ export default function MailPage() {
             <div className="flex-1 overflow-y-auto px-8 py-6">
               <h1 className="text-xl font-semibold mb-4 leading-tight text-foreground">{selectedMail.subject}</h1>
               <div className="flex items-center gap-3 p-4 rounded-xl bg-card mb-6">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0"
-                  style={{ backgroundColor: getColor(selectedMail.senderName) }}
-                >
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0" style={{ backgroundColor: getColor(selectedMail.senderName) }}>
                   {getInitials(selectedMail.senderName)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -254,11 +257,7 @@ export default function MailPage() {
             </div>
             <div className="px-8 py-3 border-t border-border">
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card">
-                <input
-                  type="text"
-                  placeholder={`回复 ${selectedMail.senderName}...`}
-                  className="flex-1 bg-transparent text-sm outline-none text-foreground placeholder:text-muted/50"
-                />
+                <input type="text" placeholder={`回复 ${selectedMail.senderName}...`} className="flex-1 bg-transparent text-sm outline-none text-foreground placeholder:text-muted/50" />
                 <div className="flex items-center gap-2">
                   <button className="text-muted hover:text-foreground"><Paperclip size={15} /></button>
                   <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-white hover:opacity-90 transition-opacity">
@@ -268,9 +267,39 @@ export default function MailPage() {
               </div>
             </div>
           </>
+        ) : contentMode === "rss" && selectedSub ? (
+          <>
+            <div className="flex items-center gap-1 px-6 py-3 border-b border-border">
+              <button onClick={() => { setSelectedSub(null); setContentMode("mail"); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted hover:text-foreground hover:bg-card transition-colors">
+                <ArrowLeft size={15} /><span>返回</span>
+              </button>
+              {selectedSub.sourceUrl && (
+                <a href={selectedSub.sourceUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-accent-light hover:bg-card transition-colors ml-auto">
+                  查看原文 →
+                </a>
+              )}
+            </div>
+            <div className="flex-1 overflow-y-auto px-8 py-6">
+              <h1 className="text-xl font-semibold mb-4 leading-tight text-foreground">{selectedSub.title}</h1>
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-card mb-6">
+                <div className="w-8 h-8 rounded flex items-center justify-center text-white flex-shrink-0 text-xs font-bold" style={{ backgroundColor: getColor(selectedSub.sourceName) }}>
+                  {selectedSub.sourceName[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-semibold text-foreground">{selectedSub.sourceName}</span>
+                  <p className="text-xs text-muted">{timeAgo(selectedSub.publishedAt)}</p>
+                </div>
+              </div>
+              <div className="rounded-xl bg-card p-6 mb-4">
+                <div className="text-sm leading-7 whitespace-pre-line text-[#94a3b8]">
+                  {selectedSub.content || selectedSub.summary || selectedSub.title}
+                </div>
+              </div>
+            </div>
+          </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-sm text-muted">选择一封邮件查看详情</p>
+            <p className="text-sm text-muted">选择一封邮件或订阅内容查看详情</p>
           </div>
         )}
       </div>
@@ -298,7 +327,13 @@ export default function MailPage() {
         </div>
         <div className="flex-1 overflow-y-auto">
           {subscriptions.map((sub) => (
-            <div key={sub.id} className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-card-hover group mx-2">
+            <div
+              key={sub.id}
+              onClick={() => { setSelectedSub(sub); setContentMode("rss"); setSelectedMail(null); }}
+              className={`flex items-start gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer group mx-2 transition-colors ${
+                selectedSub?.id === sub.id ? "bg-card" : "hover:bg-card-hover"
+              }`}
+            >
               <div
                 className="w-5 h-5 rounded flex items-center justify-center text-white flex-shrink-0 mt-0.5 text-[8px] font-bold"
                 style={{ backgroundColor: getColor(sub.sourceName) }}

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { DockBar } from "@/components/dock-bar";
+import { DashboardBg } from "@/components/dashboard-bg";
 
 export default async function DashboardLayout({
   children,
@@ -13,9 +14,9 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <DashboardBg>
       {children}
       <DockBar />
-    </div>
+    </DashboardBg>
   );
 }
